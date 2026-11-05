@@ -11,7 +11,7 @@ concurrency:
 jobs:
   mirror:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - name: 새 사진 받기
@@ -24,4 +24,4 @@ jobs:
           if git diff --cached --quiet; then echo "새 사진 없음"; exit 0; fi
           n=$(git diff --cached --name-only | wc -l)
           git commit -q -m "사진 ${n}장 추가"
-          git push
+          git pull -q --rebase && git push
