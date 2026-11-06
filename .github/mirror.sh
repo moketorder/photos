@@ -8,7 +8,13 @@ curl -sf -m 90 "$DB/published_products.json" -o /tmp/pp.json || { echo "상품 �
 grep -oE 'https://i\.ibb\.co/[A-Za-z0-9]+/[A-Za-z0-9._-]+\.(jpg|jpeg|png|webp|gif)' /tmp/pp.json | sort -u > /tmp/urls.txt
 : > /tmp/todo.txt
 while read -r u; do p=${u#https://i.ibb.co/}; [ -s "$p" ] || echo "$u" >> /tmp/todo.txt; done < /tmp/urls.txt
-echo "전체 $(wc -l < /tmp/urls.txt)장 · 새로 받을 사진 $(wc -l < /tmp/todo.txt)장"
+# [2026-11-06] 새로 등록한 상품 사진 먼저 — 지난 차례 목록(.github/seen.txt)에 없던 주소를 앞에 세운다
+touch .github/seen.txt
+grep -vxF -f .github/seen.txt /tmp/todo.txt > /tmp/todo_new.txt || true
+grep -xF -f .github/seen.txt /tmp/todo.txt > /tmp/todo_old.txt || true
+cat /tmp/todo_new.txt /tmp/todo_old.txt > /tmp/todo.txt
+cp /tmp/urls.txt .github/seen.txt
+echo "전체 $(wc -l < /tmp/urls.txt)장 · 새로 받을 사진 $(wc -l < /tmp/todo.txt)장 (새로 등록 $(wc -l < /tmp/todo_new.txt)장 먼저)"
 export END=$(( $(date +%s) + 1200 ))
 dl() {
   [ "$(date +%s)" -lt "$END" ] || return 0
